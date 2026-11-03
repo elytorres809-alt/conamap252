@@ -1,0 +1,517 @@
+/* =========================================================
+   ESTILOS DE LA PÁGINA DEL MAPA (mapa.html)
+   Se carga DESPUÉS de estilos.css, así que usamos sus variables
+   (--verde-oscuro, --verde-medio, --verde-claro, --sombra...)
+   y empezamos pensando en celular (mobile first).
+   ========================================================= */
+
+:root {
+  /* un color por categoría de lugar */
+  --c-aulas: #1d6fb8;
+  --c-laboratorios: #7b3fb0;
+  --c-talleres: #d9731a;
+  --c-servicios: #2b8a3e;
+  --c-deportivo: #c0392b;
+  --c-destino: #C0392B;     /* rojo del punto B */
+  --c-ruta: #1565C0;        /* azul de la línea de la ruta */
+  --gris-texto: #5a6b61;
+}
+
+/* ---------- 1. PLANIFICADOR DE RUTA ---------- */
+.planificador {
+  background: var(--verde-claro);
+  padding: 1.2rem 0 0.8rem;
+  border-bottom: 1px solid rgba(11, 94, 60, 0.15);
+}
+.planificador__titulo {
+  font-family: var(--letra-titulos);
+  font-weight: 400;
+  color: var(--verde-oscuro);
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  line-height: 1.2;
+}
+.planificador__texto {
+  margin-bottom: 1rem;
+}
+
+/* Celular: buscador, botón de intercambio y buscador, uno debajo del otro */
+.ruta-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+
+.intercambiar {
+  justify-self: center;       /* centrado en celular */
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--verde-medio);
+  border-radius: 50%;
+  background: var(--blanco);
+  color: var(--verde-oscuro);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .intercambiar:hover {
+    background: var(--verde-medio);
+    color: var(--blanco);
+  }
+}
+
+/* ---------- 2. BUSCADOR CON LISTA DESPLEGABLE ---------- */
+.buscador {
+  position: relative;          /* la lista se coloca respecto a este cuadro */
+}
+.buscador__etiqueta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--verde-oscuro);
+  margin-bottom: 0.3rem;
+}
+
+/* Circulito con la letra A o B */
+.punto {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--blanco);
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.punto--origen { background: var(--verde-medio); }
+.punto--destino { background: var(--c-destino); }
+
+.buscador__campo {
+  position: relative;
+}
+.buscador__entrada {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 2.8rem 0 0.9rem;
+  border: 2px solid var(--verde-medio);
+  border-radius: 12px;
+  background: var(--blanco);
+  color: var(--texto);
+  font-family: inherit;
+  font-size: 1rem;              /* 16px: evita que el iPhone haga zoom al escribir */
+}
+.buscador__entrada:focus {
+  outline: 3px solid rgba(30, 142, 78, 0.35);
+}
+.buscador__borrar {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--verde-oscuro);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* La lista que se despliega */
+.buscador__lista {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);       /* justo debajo de la caja */
+  z-index: 50;                 /* por encima del mapa */
+  background: var(--blanco);
+  border: 2px solid var(--verde-medio);
+  border-radius: 12px;
+  box-shadow: var(--sombra);
+  max-height: 50vh;
+  max-height: 50dvh;
+  overflow-y: auto;            /* si hay muchos lugares, la lista tiene scroll */
+  list-style: none;
+  padding-bottom: 0.3rem;
+}
+/* Título de cada grupo (se queda pegado arriba al hacer scroll) */
+.buscador__grupo {
+  position: sticky;
+  top: 0;
+  background: var(--verde-claro);
+  color: var(--verde-oscuro);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 0.9rem;
+}
+.buscador__opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 52px;            /* fácil de tocar con el dedo */
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--verde-claro);
+}
+.buscador__icono {
+  font-size: 1.4rem;
+  width: 1.8rem;
+  text-align: center;
+}
+.buscador__texto {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.buscador__nombre {
+  font-weight: 600;
+}
+.buscador__detalle {
+  color: var(--gris-texto);
+}
+.buscador__opcion.resaltada {
+  background: var(--verde-claro);
+}
+@media (hover: hover) {
+  .buscador__opcion:hover {
+    background: var(--verde-claro);
+  }
+}
+.buscador__vacio {
+  padding: 0.9rem;
+  color: var(--gris-texto);
+}
+
+/* ---------- 3. MENSAJE DE LA RUTA ---------- */
+.ruta-estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.ruta-resumen {
+  font-weight: 600;
+  color: var(--verde-oscuro);
+}
+.boton-texto {
+  background: none;
+  border: none;
+  color: var(--c-destino);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: underline;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  cursor: pointer;
+}
+
+/* ---------- 4. PANEL DE INFORMACIÓN ---------- */
+.info {
+  display: flex;
+  flex-wrap: wrap;             /* en celular los botones pasan a otra línea */
+  align-items: center;
+  gap: 0.8rem;
+  background: var(--blanco);
+  border-radius: 12px;
+  border-left: 6px solid var(--verde-medio);
+  box-shadow: var(--sombra);
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+}
+.info__icono {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+.info__texto {
+  flex: 1;
+  min-width: 180px;
+}
+.info__nombre {
+  font-size: 1.1rem;
+  color: var(--verde-oscuro);
+  line-height: 1.25;
+}
+.info__detalle {
+  font-size: 0.95rem;
+}
+.info__categoria {
+  font-weight: 700;
+  color: var(--verde-medio);
+  font-size: 0.9rem;
+}
+.info__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Botones (<button>) con el estilo de .boton */
+button.boton {
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+.boton--chico {
+  min-height: 44px;
+  padding: 0.4rem 1rem;
+  font-size: 0.95rem;
+  flex: 1;                     /* en celular se reparten el ancho */
+}
+.boton--destino {
+  background: var(--c-destino);
+}
+@media (hover: hover) {
+  .boton--destino:hover {
+    background: #962d22;
+  }
+}
+button.boton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ---------- 5. BARRA DE FILTROS Y ZOOM ---------- */
+.zona-mapa {
+  width: 100%;
+}
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+/* Celular: los filtros van en una sola fila que se desliza con el dedo */
+.filtros {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 6px;
+  width: 100%;
+  padding-bottom: 6px;
+}
+.filtro, .zoom button {
+  border: 2px solid var(--verde-medio);
+  background: var(--blanco);
+  color: var(--verde-oscuro);
+  border-radius: 20px;
+  padding: 6px 12px;
+  min-height: 44px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.filtro {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.filtro.activo {
+  background: var(--verde-medio);
+  color: var(--blanco);
+}
+@media (hover: hover) {
+  .filtro:hover, .zoom button:hover {
+    background: var(--verde-medio);
+    color: var(--blanco);
+  }
+}
+.zoom {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.zoom button {
+  width: 48px;
+  font-size: 1.3rem;
+  padding: 0;
+}
+
+/* ---------- 6. EL VISOR: ocupa TODO el ancho y el 60% del alto ---------- */
+.visor {
+  width: 100%;                 /* todo el ancho de la pantalla, con cualquier zoom */
+  height: 60vh;                /* 60% de la altura de la pantalla */
+  height: 60dvh;               /* "dvh" se ajusta a la barra del navegador del celular */
+  min-height: 320px;           /* para que no quede diminuto si la pantalla es muy baja */
+  position: relative;
+  overflow: hidden;            /* recorta lo que se sale; el mapa se mueve con JavaScript */
+  cursor: grab;
+  user-select: none;
+  background: #C5E0B4;         /* mismo verde del pasto del mapa */
+  border-top: 3px solid var(--verde-medio);
+  border-bottom: 3px solid var(--verde-medio);
+  touch-action: none;          /* los gestos (arrastrar, pellizcar) los maneja mapa.js */
+}
+.mapa {
+  position: absolute;          /* los íconos y la ruta se colocan respecto a este cuadro */
+  top: 0;
+  left: 0;
+  width: 100%;
+  transform-origin: 0 0;       /* mapa.js lo mueve y lo agranda con transform */
+  --inv: 1;                    /* mapa.js lo cambia para que los íconos no crezcan con el zoom */
+}
+.mapa.animando {
+  transition: transform 0.3s ease;
+}
+.mapa__imagen {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+/* ---------- 7. LA RUTA (dibujo SVG encima del mapa) ---------- */
+.ruta {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;        /* no estorba al tocar los íconos */
+}
+.ruta__borde {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 11;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ruta__linea {
+  fill: none;
+  stroke: var(--c-ruta);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 14 10;     /* línea de rayitas */
+  animation: flujo 1s linear infinite; /* las rayitas avanzan hacia el destino */
+}
+@keyframes flujo {
+  to { stroke-dashoffset: -24; }
+}
+/* Tramo dentro del 2.º piso: naranja y más fino, para distinguirlo de la ruta por las calles */
+.ruta__linea--arriba {
+  stroke: #E67E22;
+  stroke-width: 5;
+  stroke-dasharray: 3 8;
+}
+.ruta__extremo {
+  stroke: #fff;
+  stroke-width: 3;
+}
+.ruta__extremo--origen { fill: var(--verde-medio); }
+.ruta__extremo--destino { fill: var(--c-destino); }
+.ruta__letra {
+  fill: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* ---------- 8. ÍCONOS (marcadores) ---------- */
+.marcador {
+  position: absolute;                 /* se colocan con left/top desde JS */
+  transform: translate(-50%, -50%) scale(var(--inv));   /* centra el ícono y compensa el zoom */
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  border: 3px solid var(--verde-medio);
+  background: var(--blanco);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+@media (hover: hover) {
+  .marcador:hover {
+    transform: translate(-50%, -50%) scale(calc(var(--inv) * 1.25));
+    z-index: 5;
+  }
+}
+
+.marcador--aulas        { border-color: var(--c-aulas); }
+.marcador--laboratorios { border-color: var(--c-laboratorios); }
+.marcador--talleres     { border-color: var(--c-talleres); }
+.marcador--servicios    { border-color: var(--c-servicios); }
+.marcador--deportivo    { border-color: var(--c-deportivo); }
+
+.marcador.oculto { display: none; }   /* lo usan los filtros */
+
+/* Escaleras: ícono fijo de referencia, no interactivo (el clic y el arrastre lo atraviesan) */
+.escalera {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(var(--inv));
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #8d6e63;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Efecto llamativo para el lugar seleccionado */
+.marcador.activo {
+  z-index: 10;
+  background: #fff3b0;
+  animation: latido 1s infinite;
+}
+@keyframes latido {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.9); }
+  100% { box-shadow: 0 0 0 18px rgba(255, 193, 7, 0); }
+}
+
+/* Pantallas táctiles: íconos más grandes para tocarlos con el dedo */
+@media (pointer: coarse) {
+  .marcador {
+    width: 38px;
+    height: 38px;
+    font-size: 19px;
+  }
+}
+
+/* ---------- 9. RESPONSIVE ---------- */
+
+/* Tablet (768px o más) */
+@media (min-width: 768px) {
+  /* Origen | botón ⇅ | destino, en una sola fila */
+  .ruta-form {
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end;
+    gap: 0.8rem;
+  }
+  .intercambiar {
+    margin-bottom: 2px;
+  }
+
+  /* Los botones del panel ya no se estiran */
+  .info__acciones {
+    width: auto;
+  }
+  .boton--chico {
+    flex: none;
+  }
+
+  /* Los filtros caben en una fila sin deslizar */
+  .filtros {
+    width: auto;
+    flex-wrap: wrap;
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+}

@@ -1,0 +1,665 @@
+/* =========================================================
+   ESTILOS DE CONAMAP (compartidos por todas las páginas)
+
+   ESTRATEGIA "MOBILE FIRST" (primero celular):
+   - Las reglas normales (sin @media) son para CELULAR.
+   - Cada @media (min-width: ...) agrega mejoras cuando la pantalla
+     es más ancha:
+        600px  → celular grande / tablet chica
+        768px  → tablet
+        900px  → laptop / PC
+   ========================================================= */
+
+/* ---------- 1. VARIABLES: nuestra paleta de colores ---------- */
+:root {
+  --verde-oscuro: #0B5E3C;
+  --verde-medio:  #1E8E4E;
+  --verde-claro:  #E6F2EA;
+  --blanco:       #FFFFFF;
+  --texto:        #1B2B22;
+  --sombra: 0 4px 14px rgba(0, 0, 0, 0.12);
+  /* Letra elegante para títulos grandes */
+  --letra-titulos: Georgia, "Times New Roman", serif;
+}
+
+/* ---------- 2. REINICIO BÁSICO ---------- */
+/* box-sizing: el padding no agranda las cajas (evita sorpresas) */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Evita que el celular agrande el texto solo al girar la pantalla */
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Arial, sans-serif; /* letra del sistema */
+  color: var(--texto);
+  background: var(--blanco);
+  line-height: 1.6;
+  font-size: 1rem;                 /* 16px: tamaño cómodo para leer en celular */
+  overflow-wrap: break-word;       /* las palabras largas no rompen el diseño */
+  -webkit-tap-highlight-color: transparent; /* quita el destello gris al tocar */
+}
+
+img {
+  max-width: 100%; /* las imágenes nunca se salen de la pantalla */
+  height: auto;
+  display: block;
+}
+
+/* Cuadro visible al navegar con teclado (accesibilidad) */
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #FFB300;
+  outline-offset: 2px;
+}
+
+/* ---------- 3. CONTENEDOR: centra el contenido y limita el ancho ---------- */
+.contenedor {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ---------- 4. BOTONES ---------- */
+.boton {
+  display: inline-flex;            /* nos permite centrar el texto fácilmente */
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;                /* tamaño mínimo cómodo para el dedo */
+  background: var(--verde-medio);
+  color: var(--blanco);
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;            /* bordes totalmente redondeados */
+  text-decoration: none;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: var(--sombra);
+  transition: transform 0.2s, background 0.2s;
+}
+.boton--grande {
+  padding: 0.8rem 1.8rem;
+  font-size: 1.05rem;
+}
+/* Botón para fondos oscuros (blanco con letras verdes) */
+.boton--claro {
+  background: var(--blanco);
+  color: var(--verde-oscuro);
+}
+/* Botón de solo borde (secundario) */
+.boton--borde {
+  background: transparent;
+  color: var(--blanco);
+  border: 2px solid var(--blanco);
+  box-shadow: none;
+}
+
+/* Efectos "hover" SOLO en dispositivos con mouse.
+   En el celular el dedo no tiene "hover" y el efecto se quedaría pegado. */
+@media (hover: hover) {
+  .boton:hover {
+    background: var(--verde-oscuro);
+    transform: translateY(-2px);
+  }
+  .boton--claro:hover {
+    background: var(--verde-claro);
+  }
+  .boton--borde:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* ---------- 5. CABECERA ---------- */
+.cabecera {
+  background: var(--blanco);
+  border-bottom: 4px solid var(--verde-medio);
+  position: sticky;   /* se queda pegada arriba al hacer scroll */
+  top: 0;
+  z-index: 100;       /* siempre por encima del resto */
+  box-shadow: var(--sombra);
+}
+
+/* Flexbox: coloca logo y menú en una fila, separados */
+.cabecera__interior {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+
+.logo img {
+  height: 48px;       /* logo más chico en celular para ahorrar espacio */
+  width: auto;
+}
+
+/* Botón hamburguesa (solo se ve en celular y tablet chica) */
+.menu-boton {
+  background: var(--verde-oscuro);
+  color: var(--blanco);
+  border: none;
+  font-size: 1.6rem;
+  width: 48px;        /* área táctil de 48x48 */
+  height: 48px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Menú (versión celular: oculto, y al abrirse ocupa todo el ancho) */
+.menu {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: 100%;          /* justo debajo de la cabecera */
+  left: 0;
+  right: 0;
+  background: var(--blanco);
+  padding: 0.5rem 1rem 1rem;
+  box-shadow: var(--sombra);
+  max-height: 80vh;   /* si no cabe, el menú tiene su propio scroll */
+  overflow-y: auto;
+}
+.menu.abierto {
+  display: flex;      /* el JavaScript agrega esta clase para mostrarlo */
+}
+.menu a {
+  display: flex;
+  align-items: center;
+  min-height: 52px;   /* cada enlace es una fila grande y fácil de tocar */
+  color: var(--verde-oscuro);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.05rem;
+  border-bottom: 1px solid var(--verde-claro);
+}
+/* Enlace de la página donde estamos: barra verde a la izquierda */
+.menu a.activo {
+  color: var(--verde-medio);
+  border-left: 4px solid var(--verde-medio);
+  padding-left: 0.6rem;
+}
+/* El botón "Ir al mapa" va al final, grande y llamativo */
+.menu a.boton {
+  color: var(--blanco);
+  margin-top: 0.8rem;
+  border-bottom: none;
+}
+@media (hover: hover) {
+  .menu a:hover {
+    color: var(--verde-medio);
+  }
+  .menu a.boton:hover {
+    color: var(--blanco);
+  }
+}
+
+/* ---------- 6. HERO (portada grande con el mapa borroso) ---------- */
+.hero {
+  position: relative;           /* para poder apilar capas encima */
+  overflow: hidden;             /* recorta lo que se salga (el borde del mapa) */
+  background-color: var(--verde-oscuro); /* color de respaldo */
+  color: var(--blanco);
+
+  min-height: 70vh;             /* alto mínimo: 70% de la pantalla */
+  min-height: 70svh;            /* "svh" ignora la barra del navegador del celular */
+  display: flex;                /* centramos el contenido arriba-abajo... */
+  align-items: center;
+  justify-content: center;      /* ...y de izquierda a derecha */
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+/* CAPA 1 (al fondo): el mapa de Conamap, desenfocado con blur */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;                     /* ocupa toda la sección */
+  background-image: url("../Img/Mapa%20Conamap.svg");
+  background-size: cover;
+  background-position: center;
+  filter: blur(6px);            /* qué tan borroso se ve */
+  transform: scale(1.1);        /* evita bordes claros por el blur */
+  z-index: 0;
+}
+/* CAPA 2 (en medio): velo verde oscuro para poder leer el texto */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(4, 40, 25, 0.65), rgba(4, 40, 25, 0.82));
+  z-index: 1;
+}
+/* CAPA 3 (arriba): el texto y los botones */
+.hero__contenido {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 720px;
+}
+.hero__titulo {
+  font-family: var(--letra-titulos);
+  font-weight: 400;
+  /* clamp(mínimo, ideal, máximo): el título crece con la pantalla */
+  font-size: clamp(2rem, 8vw, 4rem);
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+.hero__texto {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.95;
+}
+/* Botones del hero: en celular uno debajo del otro y a lo ancho */
+.hero__botones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+/* ---------- 7. ENCABEZADO DE PÁGINAS INTERNAS ---------- */
+.encabezado-pagina {
+  background: linear-gradient(135deg, var(--verde-oscuro), var(--verde-medio));
+  color: var(--blanco);
+  text-align: center;
+  padding: 2rem 1rem;
+}
+.encabezado-pagina h1 {
+  font-family: var(--letra-titulos);
+  font-weight: 400;
+  font-size: clamp(1.8rem, 7vw, 3rem);
+  line-height: 1.2;
+}
+.encabezado-pagina p {
+  margin-top: 0.5rem;
+  font-size: 1.05rem;
+  opacity: 0.95;
+}
+
+/* ---------- 8. SECCIONES GENERALES ---------- */
+.seccion {
+  padding: 2rem 0;
+}
+.seccion--clara {
+  background: var(--verde-claro); /* franja de fondo verde suave */
+}
+.seccion h2 {
+  font-family: var(--letra-titulos);
+  font-weight: 400;
+  color: var(--verde-oscuro);
+  text-align: center;
+  font-size: clamp(1.5rem, 5vw, 1.9rem);
+  line-height: 1.25;
+  margin-bottom: 1.2rem;
+}
+.seccion__intro {
+  text-align: center;
+  max-width: 650px;
+  margin: -0.5rem auto 1.5rem;
+}
+
+/* Dos columnas (en celular una sobre otra) */
+.dos-columnas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+.dos-columnas h2 {
+  text-align: left;
+}
+.dos-columnas p {
+  margin-bottom: 1rem;
+}
+
+/* Caja blanca con sombra para mostrar el logo */
+.caja-logo {
+  background: var(--blanco);
+  border-radius: 20px;
+  box-shadow: var(--sombra);
+  padding: 1.2rem;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* ---------- 9. TARJETAS ---------- */
+/* Celular: 1 columna */
+.tarjetas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+.tarjeta {
+  background: var(--blanco);
+  border-left: 6px solid var(--verde-medio);
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: var(--sombra);
+}
+.tarjeta h3 {
+  color: var(--verde-oscuro);
+  margin-bottom: 0.4rem;
+}
+.tarjeta__icono {
+  font-size: 2rem;
+  margin-bottom: 0.3rem;
+}
+
+/* ---------- 10. LUGARES (cuadritos con icono, página de inicio) ---------- */
+.lugares {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* celular: 2 columnas */
+  gap: 0.8rem;
+}
+.lugar {
+  background: var(--blanco);
+  border-radius: 12px;
+  padding: 1.1rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--verde-oscuro);
+  box-shadow: var(--sombra);
+}
+.lugar span {
+  display: block;
+  font-size: 2rem;
+}
+
+/* ---------- 11. PASOS (cómo funciona) ---------- */
+.pasos {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+.paso {
+  text-align: center;
+  padding: 0.5rem 1rem;
+}
+.paso__numero {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0.8rem;
+  border-radius: 50%;
+  background: var(--verde-medio);
+  color: var(--blanco);
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.paso h3 {
+  color: var(--verde-oscuro);
+}
+
+/* ---------- 12. BLOQUES (Sobre nosotros) ---------- */
+.bloque {
+  background: var(--blanco);
+  border-radius: 16px;
+  box-shadow: var(--sombra);
+  padding: 1.3rem;
+  margin-bottom: 1.2rem;
+  border-top: 6px solid var(--verde-medio);
+}
+.bloque h2 {
+  display: flex;               /* título con icono a la izquierda */
+  align-items: center;
+  gap: 0.6rem;
+  text-align: left;
+  font-size: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+.bloque p {
+  margin-bottom: 0.8rem;
+}
+.bloque__destacado {
+  font-family: var(--letra-titulos);
+  font-size: 1.6rem;
+  color: var(--verde-medio);
+}
+/* Resalta una palabra dentro de un texto */
+.resaltado {
+  color: var(--verde-medio);
+  font-weight: 700;
+}
+/* Las tarjetas dentro de un bloque blanco van en verde claro */
+.bloque .tarjeta {
+  background: var(--verde-claro);
+  box-shadow: none;
+}
+
+/* ---------- 13. FILA DE TRES BLOQUES (Misión | Visión | Valores) ---------- */
+/* Celular y tablet: uno debajo del otro. En pantallas grandes: en fila */
+.fila-tres {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+}
+.fila-tres .bloque {
+  margin-bottom: 0;   /* el espacio lo da el "gap" de la cuadrícula */
+}
+
+/* ---------- 14. ICONOS SVG ---------- */
+/* Todos los iconos se dibujan con línea: toman el color del texto (currentColor) */
+.icono {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icono-titulo {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;     /* el icono nunca se aplasta si el título es largo */
+  color: var(--verde-medio);
+}
+
+/* Valores: cuadritos con icono en círculo blanco + nombre */
+.valores {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* celular: 2 columnas */
+  gap: 0.8rem;
+}
+.valor {
+  background: var(--verde-claro);
+  border-radius: 12px;
+  padding: 1rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--verde-oscuro);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+.valor__icono {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--blanco);
+  color: var(--verde-medio);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sombra);
+}
+.valor__icono .icono {
+  width: 32px;
+  height: 32px;
+}
+
+/* ---------- 15. BANDA FINAL (llamada a la acción) ---------- */
+.cta {
+  background: linear-gradient(135deg, var(--verde-oscuro), var(--verde-medio));
+  color: var(--blanco);
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+.cta h2 {
+  font-family: var(--letra-titulos);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 5vw, 1.9rem);
+  margin-bottom: 0.6rem;
+}
+.cta p {
+  margin-bottom: 1.2rem;
+}
+
+/* ---------- 16. PIE DE PÁGINA ---------- */
+.pie {
+  background: var(--verde-oscuro);
+  color: var(--blanco);
+  padding-top: 2rem;
+}
+.pie__interior {
+  display: grid;
+  grid-template-columns: 1fr;   /* celular: una columna */
+  gap: 1.2rem;
+  text-align: center;           /* centrado se ve mejor en celular */
+}
+.pie h3 {
+  margin-bottom: 0.3rem;
+}
+.pie__copy {
+  text-align: center;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+}
+
+/* ---------- 17. ACCESIBILIDAD: menos movimiento ---------- */
+/* Si la persona tiene activada la opción "reducir animaciones" en su
+   dispositivo, quitamos transiciones y desplazamientos suaves */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* =========================================================
+   18. RESPONSIVE: de celular hacia pantallas más grandes
+   ========================================================= */
+
+/* ----- 600px: celular grande y tablet chica ----- */
+@media (min-width: 600px) {
+
+  /* Botones del hero: ahora uno al lado del otro */
+  .hero__botones {
+    flex-direction: row;
+    justify-content: center;
+    max-width: none;
+  }
+
+  /* Lugares: 4 columnas; valores: 3 columnas (6 valores = 2 filas parejas) */
+  .lugares {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .valores {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hero__texto {
+    font-size: 1.15rem;
+  }
+}
+
+/* ----- 768px: tablet ----- */
+@media (min-width: 768px) {
+
+  /* Ocultamos la hamburguesa y mostramos el menú en fila */
+  .menu-boton {
+    display: none;
+  }
+  .menu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+    position: static;      /* ya no flota debajo de la cabecera */
+    padding: 0;
+    box-shadow: none;
+    max-height: none;
+    overflow: visible;
+  }
+  .menu a {
+    min-height: 0;
+    font-size: 1rem;
+    border-bottom: none;
+    padding: 0.4rem 0;
+  }
+  .menu a.activo {
+    border-left: none;
+    padding-left: 0;
+    border-bottom: 3px solid var(--verde-medio);
+  }
+  .menu a.boton {
+    margin-top: 0;
+    padding: 0.6rem 1.4rem;
+    min-height: 44px;
+  }
+
+  .logo img {
+    height: 60px;
+  }
+
+  .seccion {
+    padding: 3rem 0;
+  }
+  .encabezado-pagina {
+    padding: 3rem 1rem;
+  }
+
+  .hero {
+    min-height: 80vh;
+    min-height: 80svh;
+  }
+
+  /* Dos columnas lado a lado */
+  .dos-columnas {
+    grid-template-columns: 1.3fr 1fr;
+    gap: 3rem;
+  }
+
+  /* Tarjetas, pasos y pie: tres columnas */
+  .tarjetas,
+  .pasos,
+  .pie__interior {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .pie__interior {
+    text-align: left;
+  }
+}
+
+/* ----- 900px: laptop y PC ----- */
+@media (min-width: 900px) {
+
+  /* Misión, Visión y Valores EN FILA */
+  .fila-tres {
+    grid-template-columns: repeat(3, 1fr);
+    align-items: stretch;   /* los tres bloques miden lo mismo de alto */
+  }
+  /* En una columna angosta: tarjetas apiladas y valores en 2 columnas */
+  .fila-tres .tarjetas {
+    grid-template-columns: 1fr;
+  }
+  .fila-tres .valores {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

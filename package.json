@@ -1,0 +1,12 @@
+{
+  "name": "conamap",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mapa interactivo del Conalep 252",
+  "scripts": {
+    "start": "node --env-file=.env server.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.0"
+  }
+}
