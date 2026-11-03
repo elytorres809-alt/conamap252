@@ -2,16 +2,20 @@
    server.js  ->  servidor de Conamap (Node.js)
 
    Hace 2 cosas:
-     1) Muestra la página (sirve los archivos html, css, js e imágenes).
-     2) Recibe los reportes en POST /api/reportar y los envía por correo
+     1) Recibe los reportes en POST /api/reportar y los envía por correo
         a conamap252@gmail.com, de forma ANÓNIMA: la persona nunca pone
         su correo, y aquí no guardamos ni su IP ni su mensaje.
+     2) (Solo en tu computadora) Muestra la página para probarla.
 
-   Cómo usarlo (en la carpeta del proyecto):
-     1) npm install
-     2) copia .env.example como .env y llena tus datos
-     3) npm start
-     4) abre http://localhost:3000
+   DÓNDE CORRE:
+     - En INTERNET: en un hosting gratuito (ej. Render). La página vive en
+       GitHub Pages y le manda los reportes a este servidor.
+     - En tu COMPUTADORA: con "npm run dev" para hacer pruebas.
+
+   VARIABLES DE CONFIGURACIÓN (en .env local, o en el panel del hosting):
+     GMAIL_USER, GMAIL_APP_PASSWORD  -> la cuenta que envía los correos
+     ORIGEN_PERMITIDO                -> quién puede mandar reportes (tu página)
+     SOLO_API=1                      -> en el hosting: no mostrar la página
    ============================================================ */
 
 const http = require("http");
@@ -19,38 +23,70 @@ const fs = require("fs");
 const path = require("path");
 const nodemailer = require("nodemailer");
 
-const PUERTO = process.env.PORT || 3000;
-const DESTINO = "conamap252@gmail.com";                 // a dónde llegan los reportes
-const ORIGEN_PERMITIDO = process.env.ORIGEN_PERMITIDO || "*"; // quién puede llamar a la API desde otro sitio
+const PUERTO = process.env.PORT || 3000;      // el hosting define PORT solo
+const DESTINO = "conamap252@gmail.com";       // a dónde llegan los reportes
+const SOLO_API = process.env.SOLO_API === "1";
 
-// El "cartero": usa una cuenta de Gmail para ENVIAR (los datos van en .env, nunca en el código)
+/* ---------- Quién puede usar la API (CORS) ----------
+   Los navegadores bloquean que una página (GitHub Pages) hable con otro
+   servidor, a menos que el servidor lo permita. Aquí decimos quién sí puede.
+   Ejemplo: ORIGEN_PERMITIDO=https://tuusuario.github.io
+   Puedes poner varios separados por coma. Sin nada, permite a todos ("*"). */
+const PERMITIDOS = (process.env.ORIGEN_PERMITIDO || "*")
+  .split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+
+function origenPermitido(req) {
+  const origen = req.headers.origin;
+  if (!origen) return true;                                  // no es un navegador (ej. una prueba con curl)
+  if (PERMITIDOS.includes("*") || PERMITIDOS.includes(origen)) return true;
+  try { return new URL(origen).host === req.headers.host; }  // la misma página que sirve este servidor
+  catch (e) { return false; }
+}
+
+function cabecerasCors(req) {
+  const origen = req.headers.origin;
+  if (!origen || !origenPermitido(req)) return {};
+  return {
+    "Access-Control-Allow-Origin": PERMITIDOS.includes("*") ? "*" : origen,
+    "Vary": "Origin"
+  };
+}
+
+/* ---------- El "cartero": usa una cuenta de Gmail para ENVIAR ---------- */
 const cartero = nodemailer.createTransport({
   service: "gmail",
   auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD }
 });
 
-/* ---------- Límite de envíos (anti-spam) ----------
-   Máximo 5 reportes por hora desde la misma conexión.
+/* ---------- Límites de envío (anti-spam) ----------
+   - 5 reportes por hora por persona
+   - 40 reportes por hora en total (protege la cuenta de Gmail)
    Se guarda solo en memoria y se borra solo; no se escribe en ningún archivo. */
-const MAX_POR_HORA = 5;
-const envios = new Map();            // ip -> lista de horas de envío
+const MAX_POR_PERSONA = 5;
+const MAX_TOTAL = 40;
+const envios = new Map();      // ip -> horas de envío
+let totalHora = 0;
+
+// Detrás del hosting, la IP real viene en la cabecera x-forwarded-for
+function ipDe(req) {
+  const reenviada = req.headers["x-forwarded-for"];
+  return (reenviada ? reenviada.split(",")[0].trim() : req.socket.remoteAddress) || "desconocida";
+}
 
 function demasiados(ip) {
   const ahora = Date.now();
   const recientes = (envios.get(ip) || []).filter(function (t) { return ahora - t < 3600000; });
-  if (recientes.length >= MAX_POR_HORA) return true;
+  if (recientes.length >= MAX_POR_PERSONA || totalHora >= MAX_TOTAL) return true;
   recientes.push(ahora);
   envios.set(ip, recientes);
+  totalHora++;
   return false;
 }
-setInterval(function () { envios.clear(); }, 3600000);   // limpieza cada hora
+setInterval(function () { envios.clear(); totalHora = 0; }, 3600000);   // limpieza cada hora
 
 /* ---------- Ayudas ---------- */
-function responder(res, codigo, objeto) {
-  res.writeHead(codigo, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Access-Control-Allow-Origin": ORIGEN_PERMITIDO
-  });
+function responder(req, res, codigo, objeto) {
+  res.writeHead(codigo, Object.assign({ "Content-Type": "application/json; charset=utf-8" }, cabecerasCors(req)));
   res.end(JSON.stringify(objeto));
 }
 
@@ -69,22 +105,24 @@ function leerCuerpo(req) {
 
 /* ---------- Recibir un reporte ---------- */
 async function recibirReporte(req, res) {
-  const ip = req.socket.remoteAddress;
-  if (demasiados(ip)) {
-    return responder(res, 429, { ok: false, error: "Enviaste muchos mensajes. Intenta de nuevo en una hora." });
+  if (!origenPermitido(req)) {
+    return responder(req, res, 403, { ok: false, error: "Origen no permitido." });
+  }
+  if (demasiados(ipDe(req))) {
+    return responder(req, res, 429, { ok: false, error: "Se enviaron muchos mensajes. Intenta de nuevo más tarde." });
   }
 
   let datos;
   try { datos = JSON.parse(await leerCuerpo(req)); }
-  catch (e) { return responder(res, 400, { ok: false, error: "Mensaje no válido." }); }
+  catch (e) { return responder(req, res, 400, { ok: false, error: "Mensaje no válido." }); }
 
   // Si el campo trampa viene lleno, es un robot: fingimos que salió bien y no enviamos nada
-  if (datos.web) return responder(res, 200, { ok: true });
+  if (datos.web) return responder(req, res, 200, { ok: true });
 
   const tipo = datos.tipo === "sugerencia" ? "Sugerencia" : "Problema";
   const mensaje = typeof datos.mensaje === "string" ? datos.mensaje.trim() : "";
   if (mensaje.length < 10 || mensaje.length > 1500) {
-    return responder(res, 400, { ok: false, error: "El mensaje debe tener entre 10 y 1500 caracteres." });
+    return responder(req, res, 400, { ok: false, error: "El mensaje debe tener entre 10 y 1500 caracteres." });
   }
 
   try {
@@ -92,16 +130,16 @@ async function recibirReporte(req, res) {
       from: '"Conamap (reporte anónimo)" <' + process.env.GMAIL_USER + ">",
       to: DESTINO,
       subject: "[Conamap] " + tipo + " anónimo",
-      text: "Tipo: " + tipo + "\nFecha: " + new Date().toLocaleString("es-MX") + "\n\n" + mensaje
+      text: "Tipo: " + tipo + "\nFecha: " + new Date().toLocaleString("es-MX", { timeZone: "America/Mexico_City" }) + "\n\n" + mensaje
     });
-    responder(res, 200, { ok: true });
+    responder(req, res, 200, { ok: true });
   } catch (error) {
     console.error("No se pudo enviar el correo:", error.message);
-    responder(res, 500, { ok: false, error: "No se pudo enviar. Intenta más tarde." });
+    responder(req, res, 500, { ok: false, error: "No se pudo enviar. Intenta más tarde." });
   }
 }
 
-/* ---------- Servir la página ---------- */
+/* ---------- Servir la página (solo para pruebas en tu computadora) ---------- */
 const TIPOS = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml",
@@ -130,20 +168,30 @@ function servirArchivo(req, res) {
 
 /* ---------- El servidor ---------- */
 http.createServer(function (req, res) {
-  if (req.url === "/api/reportar") {
+  const ruta = req.url.split("?")[0];
+
+  // /salud: el hosting la usa para saber que el servidor está vivo,
+  // y la página la usa para "despertarlo" (los hostings gratis se duermen)
+  if (ruta === "/salud") {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    return res.end("ok");
+  }
+
+  if (ruta === "/api/reportar") {
     if (req.method === "OPTIONS") {            // permiso previo del navegador (CORS)
-      res.writeHead(204, {
-        "Access-Control-Allow-Origin": ORIGEN_PERMITIDO,
-        "Access-Control-Allow-Methods": "POST",
+      res.writeHead(204, Object.assign({
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type"
-      });
+      }, cabecerasCors(req)));
       return res.end();
     }
     if (req.method === "POST") return recibirReporte(req, res);
-    return responder(res, 405, { ok: false, error: "Método no permitido." });
+    return responder(req, res, 405, { ok: false, error: "Método no permitido." });
   }
+
+  if (SOLO_API) return responder(req, res, 200, { ok: true, servicio: "Conamap (reportes)" });
   if (req.method === "GET") return servirArchivo(req, res);
   res.writeHead(405); res.end();
 }).listen(PUERTO, function () {
-  console.log("Conamap funcionando en http://localhost:" + PUERTO);
+  console.log("Conamap funcionando en el puerto " + PUERTO + (SOLO_API ? " (solo API)" : " -> http://localhost:" + PUERTO));
 });
