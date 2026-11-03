@@ -1,0 +1,45 @@
+/* ESTILOS DE reportar.html (usa las variables de estilos.css) */
+
+.reporte { padding-top: 1.5rem; padding-bottom: 2rem; max-width: 680px; }
+.reporte__titulo {
+  font-family: var(--letra-titulos);
+  font-weight: 400;
+  color: var(--verde-oscuro);
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+.reporte__form { margin-top: 1.2rem; display: grid; gap: 0.6rem; }
+
+.reporte__tipo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.4rem;
+  border: 2px solid var(--verde-medio);
+  border-radius: 12px;
+  padding: 0.6rem 1rem 0.8rem;
+}
+.reporte__tipo legend { padding: 0 0.4rem; font-weight: 600; color: var(--verde-oscuro); }
+.reporte__tipo label { min-height: 44px; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; }
+
+.reporte__etiqueta { font-weight: 600; color: var(--verde-oscuro); }
+.reporte__form textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 2px solid var(--verde-medio);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;             /* 16px: evita el zoom automático en iPhone */
+  resize: vertical;
+}
+.reporte__form textarea:focus { outline: 3px solid rgba(30, 142, 78, 0.35); }
+.reporte__contador { text-align: right; font-size: 0.85rem; color: #5a6b61; margin-top: -0.3rem; }
+
+/* El campo trampa se saca de la pantalla (no con display:none, para que los robots lo vean) */
+.reporte__trampa { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.reporte__form button.boton { border: none; font-family: inherit; cursor: pointer; min-height: 48px; }
+.reporte__form button.boton:disabled { opacity: 0.5; cursor: wait; }
+.reporte__estado { min-height: 1.5em; font-weight: 600; }
+.reporte__estado.ok { color: var(--verde-medio); }
+.reporte__estado.error { color: #C0392B; }

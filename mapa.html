@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <!-- Hace que la página se vea bien en celulares -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa interactivo | Conamap</title>
+  <!-- Primero los estilos compartidos del sitio, después los del mapa -->
+  <link rel="stylesheet" href="css/estilos.css">
+  <link rel="stylesheet" href="css/mapa.css">
+  <link rel="stylesheet" href="css/tarjeta.css">
+  <script src="js/ubicacion.js"></script>
+</head>
+<body>
+
+  <!-- ===== CABECERA (igual que en las demás páginas) ===== -->
+  <header class="cabecera">
+    <div class="contenedor cabecera__interior">
+      <a href="index.html" class="logo">
+        <img src="Img/logotipo.png" alt="Conamap, encuentra tu camino">
+      </a>
+      <button class="menu-boton" id="menuBoton"
+              aria-label="Abrir menú" aria-expanded="false">☰</button>
+      <nav class="menu" id="menu">
+        <a href="index.html">Inicio</a>
+        <a href="que-es.html">¿Qué es Conamap?</a>
+        <a href="sobre-nosotros.html">Sobre nosotros</a>
+        <a href="reportar.html">Reportar o sugerir</a>
+        <a href="mapa.html" class="boton">Ir al mapa</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===== PLANIFICADOR DE RUTA ===== -->
+    <section class="planificador">
+      <div class="contenedor">
+        <h1 class="planificador__titulo">Mapa interactivo</h1>
+        <p class="planificador__texto">
+          Elige dónde estás y a dónde quieres ir. Trazamos la ruta por ti.
+        </p>
+
+        <div class="ruta-form">
+
+          <!-- Buscador 1: ¿Dónde estás? -->
+          <div class="buscador" id="buscador-origen">
+            <label class="buscador__etiqueta" for="entrada-origen">
+              <span class="punto punto--origen">A</span> ¿Dónde estás?
+            </label>
+            <div class="buscador__campo">
+              <input class="buscador__entrada" id="entrada-origen" type="text"
+                     placeholder="Busca o elige tu ubicación" autocomplete="off"
+                     role="combobox" aria-expanded="false"
+                     aria-controls="lista-origen" aria-autocomplete="list">
+              <button class="buscador__borrar" id="borrar-origen" type="button"
+                      aria-label="Borrar el lugar de origen" hidden>✕</button>
+            </div>
+            <ul class="buscador__lista" id="lista-origen" role="listbox" hidden></ul>
+          </div>
+
+          <!-- Botón para intercambiar origen y destino -->
+          <button class="intercambiar" id="intercambiar" type="button"
+                  aria-label="Intercambiar origen y destino" title="Intercambiar">⇅</button>
+
+          <!-- Buscador 2: ¿A dónde quieres ir? (es idéntico al primero) -->
+          <div class="buscador" id="buscador-destino">
+            <label class="buscador__etiqueta" for="entrada-destino">
+              <span class="punto punto--destino">B</span> ¿A dónde quieres ir?
+            </label>
+            <div class="buscador__campo">
+              <input class="buscador__entrada" id="entrada-destino" type="text"
+                     placeholder="Busca o elige tu destino" autocomplete="off"
+                     role="combobox" aria-expanded="false"
+                     aria-controls="lista-destino" aria-autocomplete="list">
+              <button class="buscador__borrar" id="borrar-destino" type="button"
+                      aria-label="Borrar el lugar de destino" hidden>✕</button>
+            </div>
+            <ul class="buscador__lista" id="lista-destino" role="listbox" hidden></ul>
+          </div>
+
+        </div>
+
+        <!-- Mensaje de la ruta y botón para borrarla -->
+        <div class="ruta-estado">
+          <p class="ruta-resumen" id="ruta-resumen" aria-live="polite"></p>
+          <button class="boton-texto" id="borrar-ruta" type="button" hidden>Borrar ruta</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== EL MAPA (ocupa todo el ancho de la pantalla) ===== -->
+    <section class="zona-mapa">
+
+      <div class="contenedor">
+        <div class="barra">
+          <!-- Botones para filtrar por tipo de lugar -->
+          <div class="filtros" id="filtros">
+            <button class="filtro activo" data-categoria="todos">Todos</button>
+            <button class="filtro" data-categoria="aulas">🎓 Aulas</button>
+            <button class="filtro" data-categoria="laboratorios">🧪 Laboratorios</button>
+            <button class="filtro" data-categoria="talleres">🔧 Talleres</button>
+            <button class="filtro" data-categoria="servicios">🏢 Servicios</button>
+            <button class="filtro" data-categoria="deportivo">⚽ Deportivo</button>
+          </div>
+
+          <!-- Botones de zoom -->
+          <div class="zoom">
+            <button id="zoom-reset" aria-label="Ver todo el mapa" title="Ver todo el mapa">⌂</button>
+            <button id="zoom-menos" aria-label="Alejar">−</button>
+            <button id="zoom-mas" aria-label="Acercar">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- "visor" es la ventana (100% de ancho y 60% de alto);
+           "mapa" es lo que se agranda con el zoom -->
+      <div class="mapa-caja">
+      <div class="visor" id="visor">
+        <div class="mapa" id="mapa">
+          <img class="mapa__imagen" src="Img/Mapa%20Conamap.svg"
+               alt="Plano del plantel Conalep 252" draggable="false">
+
+          <!-- Capa donde se dibuja la ruta (mismo tamaño que el mapa) -->
+          <svg class="ruta" viewBox="0 0 911 1061" aria-hidden="true">
+            <g id="ruta-capa"></g>
+          </svg>
+
+          <!-- Los íconos se crean con JavaScript (js/mapa.js) -->
+        </div>
+      </div>
+
+      <!-- TARJETA: se llena con los datos de js/info-lugares.js -->
+      <aside class="tarjeta oculta" id="tarjeta" aria-live="polite">
+        <button class="tarjeta__cerrar" id="tarjeta-cerrar" type="button" aria-label="Cerrar">✕</button>
+        <div class="galeria" id="galeria" hidden></div>
+        <div class="tarjeta__banner" id="banner" hidden></div>
+        <div class="tarjeta__cuerpo">
+          <p class="tarjeta__categoria" id="t-categoria"></p>
+          <h2 class="tarjeta__nombre" id="t-nombre"></h2>
+          <p class="tarjeta__edificio" id="t-edificio"></p>
+          <p class="tarjeta__descripcion" id="t-descripcion"></p>
+          <ul class="tarjeta__datos" id="t-datos"></ul>
+          <div class="tarjeta__acciones">
+            <button class="boton boton--chico" id="boton-aqui" type="button">📍 Estoy aquí</button>
+            <button class="boton boton--chico boton--destino" id="boton-ir" type="button">🏁 Quiero ir aquí</button>
+          </div>
+        </div>
+      </aside>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ===== PIE DE PÁGINA ===== -->
+  <footer class="pie">
+    <div class="contenedor pie__interior">
+      <div>
+        <img src="Img/Piepag.jpeg" alt="Eslogan">
+      </div>
+      <div>
+        <h3>Contacto</h3>
+        <p>conamap252@gmail.com</p>
+      </div>
+      <div>
+        <h3>Dirección</h3>
+        <p>Conalep 252, Vicente M. Corona, El Espinal, 94330 Orizaba, Ver.</p>
+      </div>
+    </div>
+    <p class="pie__copy">© 2026 Conamap · Conalep 252</p>
+  </footer>
+
+  <!-- El orden importa: primero los datos, después la lógica -->
+  <script src="js/lugares.js"></script>
+  <script src="js/info-lugares.js"></script>
+  <script src="js/caminos.js"></script>
+  <script src="js/ruta.js"></script>
+  <script src="js/buscador.js"></script>
+  <script src="js/mapa.js"></script>
+  <script src="js/menu.js"></script>
+</body>
+</html>

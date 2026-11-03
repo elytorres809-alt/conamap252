@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reportar o sugerir | Conamap</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <link rel="stylesheet" href="css/reportar.css">
+</head>
+<body>
+
+  <!-- ===== CABECERA (igual que en las demás páginas) ===== -->
+  <header class="cabecera">
+    <div class="contenedor cabecera__interior">
+      <a href="index.html" class="logo">
+        <img src="Img/logotipo.png" alt="Conamap, encuentra tu camino">
+      </a>
+      <button class="menu-boton" id="menuBoton"
+              aria-label="Abrir menú" aria-expanded="false">☰</button>
+      <nav class="menu" id="menu">
+        <a href="index.html">Inicio</a>
+        <a href="que-es.html">¿Qué es Conamap?</a>
+        <a href="sobre-nosotros.html">Sobre nosotros</a>
+        <a href="reportar.html" class="activo">Reportar o sugerir</a>
+        <a href="mapa.html" class="boton">Ir al mapa</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="contenedor reporte">
+    <h1 class="reporte__titulo">Reportar un problema o sugerir algo</h1>
+    <p>¿Una ruta está mal, falta un lugar o tienes una idea? Cuéntanos.
+       Es <strong>anónimo</strong>: no te pedimos nombre ni correo.</p>
+
+    <form class="reporte__form" id="formulario" novalidate>
+
+      <fieldset class="reporte__tipo">
+        <legend>¿Qué quieres enviar?</legend>
+        <label><input type="radio" name="tipo" value="problema" checked> 🐞 Un problema</label>
+        <label><input type="radio" name="tipo" value="sugerencia"> 💡 Una sugerencia</label>
+      </fieldset>
+
+      <label class="reporte__etiqueta" for="mensaje">Tu mensaje</label>
+      <textarea id="mensaje" name="mensaje" rows="7" maxlength="1500" required
+                placeholder="Escribe aquí con el mayor detalle posible (por ejemplo: en qué lugar o ruta pasó)."></textarea>
+      <p class="reporte__contador"><span id="contador">0</span> / 1500</p>
+
+      <!-- Campo trampa: las personas no lo ven; los robots sí lo llenan -->
+      <div class="reporte__trampa" aria-hidden="true">
+        <label>No llenes esto <input type="text" name="web" id="web" tabindex="-1" autocomplete="off"></label>
+      </div>
+
+      <button class="boton" id="enviar" type="submit">Enviar</button>
+      <p class="reporte__estado" id="estado" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <!-- ===== PIE DE PÁGINA ===== -->
+  <footer class="pie">
+    <div class="contenedor pie__interior">
+      <div>
+        <h3>Conamap</h3>
+        <p>Encuentra tu camino.</p>
+      </div>
+      <div>
+        <h3>Contacto</h3>
+        <p>conamap252@gmail.com</p>
+      </div>
+      <div>
+        <h3>Dirección</h3>
+        <p>Conalep 252, Vicente M. Corona, El Espinal, 94330 Orizaba, Ver.</p>
+      </div>
+    </div>
+    <p class="pie__copy">© 2026 Conamap · Conalep 252</p>
+  </footer>
+
+  <script src="js/reportar.js"></script>
+  <script src="js/menu.js"></script>
+</body>
+</html>
