@@ -10,7 +10,7 @@
 // ⚠ CAMBIA ESTO cuando tengas tu servidor en el hosting:
 // la dirección que te da Render, sin "/" al final. Ejemplo:
 //   "https://conamap-servidor.onrender.com"
-const URL_SERVIDOR = "https://TU-SERVIDOR.onrender.com";
+const URL_SERVIDOR = "https://conamap-servidor.onrender.com";
 
 // En tu computadora (localhost) se usa el servidor local; en internet, el del hosting
 const ES_LOCAL = location.hostname === "localhost" || location.hostname === "127.0.0.1";
