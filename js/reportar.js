@@ -56,7 +56,7 @@ formulario.addEventListener("submit", async function (e) {
   }
 
   botonEnviar.disabled = true;              // evita enviar dos veces
-  avisar("Enviando… (si el servidor estaba dormido, puede tardar hasta un minuto)");
+  avisar("Enviando… (si tarda puedes contactarnos personalmente a conamap252@gmail.com para atender tu sugerencia)");
 
   // Si pasan 90 segundos sin respuesta, cancelamos
   const control = new AbortController();
