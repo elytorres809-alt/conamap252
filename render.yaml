@@ -1,0 +1,19 @@
+# Configuración para desplegar el servidor en Render (hosting gratuito).
+# Render lee este archivo al conectar tu repositorio de GitHub ("Blueprint").
+# Los datos secretos NO van aquí: se escriben en el panel de Render.
+
+services:
+  - type: web
+    name: conamap-servidor
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /salud
+    envVars:
+      - key: SOLO_API
+        value: "1"
+      - key: RESEND_API_KEY
+        sync: false          # la clave de Resend; la escribes tú en el panel
+      - key: ORIGEN_PERMITIDO
+        sync: false          # tu página, ej. https://tuusuario.github.io
