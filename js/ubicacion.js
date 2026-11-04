@@ -20,11 +20,7 @@
    ============================================================ */
 
 (function () {
-
-  /* ---------- AJUSTES (cámbialos aquí) ---------- */
-  // ⚠ COORDENADAS APROXIMADAS (centro de Orizaba). REEMPLÁZALAS por las del plantel:
-  //   en Google Maps, clic derecho sobre el Conalep 252 -> el primer renglón son
-  //   la latitud y la longitud (clic para copiarlas).
+   
   const PLANTEL = { lat: 18.87110664990193, lng: -97.0968375779186 };
   const RADIO_METROS = 25000;             // distancia máxima permitida: 5 km
   const MINUTOS_VIGENCIA = 30;           // cuánto se recuerda que ya pasaste
