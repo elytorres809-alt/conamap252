@@ -22,7 +22,7 @@
 (function () {
    
   const PLANTEL = { lat: 18.87110664990193, lng: -97.0968375779186 };
-  const RADIO_METROS = 25000;             // distancia máxima permitida: 5 km
+  const RADIO_METROS = 5000;             // distancia máxima permitida: 5 km
   const MINUTOS_VIGENCIA = 30;           // cuánto se recuerda que ya pasaste
   const PAGINA_INICIO = "index.html";    // a dónde se manda a quien no pasa
   const CLAVE = "conamap-ubicacion";     // nombre con el que se guarda en el navegador
