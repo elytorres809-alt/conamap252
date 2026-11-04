@@ -83,6 +83,7 @@ formulario.addEventListener("submit", async function (e) {
       avisar(datos.error || "No se pudo enviar. Intenta de nuevo más tarde.", "error");
     }
   } catch (error) {
+    console.error("Error al enviar el reporte:", error);
     avisar("No hay conexión con el servidor. Intenta de nuevo en un momento.", "error");
   }
   clearTimeout(limite);
