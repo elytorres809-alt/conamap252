@@ -26,7 +26,7 @@
   //   en Google Maps, clic derecho sobre el Conalep 252 -> el primer renglón son
   //   la latitud y la longitud (clic para copiarlas).
   const PLANTEL = { lat: 18.85, lng: -97.10 };
-  const RADIO_METROS = 100000;             // distancia máxima permitida: 5 km
+  const RADIO_METROS = 5000;             // distancia máxima permitida: 5 km
   const MINUTOS_VIGENCIA = 30;           // cuánto se recuerda que ya pasaste
   const PAGINA_INICIO = "index.html";    // a dónde se manda a quien no pasa
   const CLAVE = "conamap-ubicacion";     // nombre con el que se guarda en el navegador
