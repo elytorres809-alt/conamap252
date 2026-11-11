@@ -334,11 +334,11 @@ document.getElementById("zoom-reset").addEventListener("click", function () {
 });
 
 // Mueve el mapa para que el lugar quede visible, fuera de la zona que tapa la tarjeta
-function centrarEn(lugar) {
+function centrarEn(lugar, sinTarjeta) {
   escala = Math.max(escala, 1.5);
   const escritorio = window.innerWidth >= 800;       // en computadora la tarjeta va a la derecha
-  const libreX = escritorio ? visor.clientWidth - tarjeta.offsetWidth : visor.clientWidth;
-  const libreY = escritorio ? visor.clientHeight : visor.clientHeight - tarjeta.offsetHeight;
+  const libreX = escritorio && !sinTarjeta ? visor.clientWidth - tarjeta.offsetWidth : visor.clientWidth;
+  const libreY = escritorio || sinTarjeta ? visor.clientHeight : visor.clientHeight - tarjeta.offsetHeight;
   const px = mapa.offsetWidth / ANCHO_SVG;           // píxeles que mide cada unidad del SVG
   x = libreX / 2 - lugar.x * px * escala;
   y = libreY / 2 - lugar.y * px * escala;
@@ -348,6 +348,22 @@ function centrarEn(lugar) {
 
 
 /* ---------- 5) Buscadores y ruta ---------- */
+/* ---------- "Tú estás aquí" ----------
+   Un punto azul que siempre sigue al lugar elegido en "¿Dónde estás?".
+   Es solo un dibujo: no se puede tocar. */
+const puntoAqui = document.createElement("div");
+puntoAqui.className = "aqui";
+puntoAqui.hidden = true;
+puntoAqui.setAttribute("aria-hidden", "true");
+mapa.appendChild(puntoAqui);
+
+function ponerPuntoAqui(origen) {
+  puntoAqui.hidden = !origen;
+  if (!origen) return;
+  puntoAqui.style.left = (origen.x / ANCHO_SVG) * 100 + "%";
+  puntoAqui.style.top = (origen.y / ALTO_SVG) * 100 + "%";
+}
+
 const buscadorOrigen = crearBuscador("origen", actualizarRuta);
 const buscadorDestino = crearBuscador("destino", actualizarRuta);
 
@@ -356,6 +372,7 @@ function actualizarRuta() {
   const destino = buscadorDestino.obtener();
 
   borrarRuta();
+  ponerPuntoAqui(origen);   // el punto azul sigue al origen (o se esconde si no hay)
   botonBorrarRuta.hidden = !(origen || destino);
 
   if (!origen && !destino) { rutaResumen.textContent = ""; return; }
@@ -421,11 +438,28 @@ function encuadrarRuta(puntos) {
 }
 
 
+/* ---------- Entrada por código QR ----------
+   Un QR abre el mapa así:  mapa.html?aqui=31  (31 = id del lugar en lugares.js).
+   Aquí lo leemos, llenamos "¿Dónde estás?" y centramos el mapa en ese lugar.
+   "¿A dónde quieres ir?" se queda vacío para que la persona lo elija. */
+function aplicarQR() {
+  const texto = new URLSearchParams(location.search).get("aqui");
+  if (!/^\d{1,3}$/.test(texto || "")) return;      // solo números: ignoramos cualquier otra cosa
+
+  const lugar = LUGARES.find(function (l) { return l.id === Number(texto); });
+  const opcion = lugar && OPCIONES.find(function (o) { return o.lugarId === lugar.id; });
+  if (!opcion) return;                              // el id no existe: no pasa nada
+
+  buscadorOrigen.poner(opcion, true);               // llena el campo y avisa a la ruta
+  centrarEn(lugar, true);                           // true = no hay tarjeta abierta
+}
+
 /* ---------- 7) Arranque ---------- */
 function iniciar() {
   fijarLimites();
   escala = ESCALA_MIN; x = 0; y = 0;   // empieza viendo el mapa completo
   aplicar();
+  aplicarQR();                         // si entraron por un QR, ubica a la persona
 }
 // Las escaleras son solo un ícono de referencia: no se pueden tocar ni buscar
 function crearEscaleras() {
