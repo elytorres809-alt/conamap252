@@ -447,6 +447,26 @@ button.boton:disabled {
 
 .marcador.oculto { display: none; }   /* lo usan los filtros */
 
+/* "Tú estás aquí": punto azul que pulsa, no interactivo */
+.aqui {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%) scale(var(--inv));
+  background: #1a73e8;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.5);
+  animation: aqui-pulso 1.8s infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+.aqui[hidden] { display: none; }
+@keyframes aqui-pulso {
+  70%  { box-shadow: 0 0 0 16px rgba(26, 115, 232, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0); }
+}
+
 /* Escaleras: ícono fijo de referencia, no interactivo (el clic y el arrastre lo atraviesan) */
 .escalera {
   position: absolute;
