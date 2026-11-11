@@ -396,6 +396,11 @@ button.boton:disabled {
 @keyframes flujo {
   to { stroke-dashoffset: -24; }
 }
+/* En celulares la ruta no se anima: la animación obliga a redibujar sin parar y traba el mapa */
+@media (max-width: 800px) {
+  .ruta__linea { animation: none; }
+}
+
 /* Tramo dentro del 2.º piso: naranja y más fino, para distinguirlo de la ruta por las calles */
 .ruta__linea--arriba {
   stroke: #E67E22;
