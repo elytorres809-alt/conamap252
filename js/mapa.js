@@ -204,12 +204,25 @@ function aplicar() {
   x = mw <= vw ? (vw - mw) / 2 : Math.min(0, Math.max(vw - mw, x));
   y = mh <= vh ? (vh - mh) / 2 : Math.min(0, Math.max(vh - mh, y));
 
+  // El dibujo en pantalla se hace UNA vez por cuadro (no en cada evento del dedo):
+  // el celular manda muchos eventos por segundo y así se evita trabajo de más
+  if (!pendiente) { pendiente = true; requestAnimationFrame(pintar); }
+}
+
+let pendiente = false, invAnterior = null;
+function pintar() {
+  pendiente = false;
   mapa.style.transform = "translate(" + x + "px, " + y + "px) scale(" + escala + ")";
 
   // Los íconos se achican al mismo ritmo que crece el mapa, así no se hacen gigantes.
   // Con el mapa completo se ven un poco más chicos para que no se amontonen.
   const tam = Math.min(1, 0.6 + 0.4 * (escala / ESCALA_MIN - 1));
-  mapa.style.setProperty("--inv", tam / escala);
+  // Solo se cambia cuando el zoom cambió: al arrastrar no hace falta, y cambiarla
+  // obliga al navegador a recalcular los 44 íconos en cada movimiento
+  if (tam / escala !== invAnterior) {
+    invAnterior = tam / escala;
+    mapa.style.setProperty("--inv", invAnterior);
+  }
 }
 
 // Zoom dejando fijo el punto (cx, cy): el que está bajo el cursor o los dedos
@@ -479,7 +492,17 @@ crearMarcadores();
 crearEscaleras();
 activarFiltros();
 
-// Esperamos a que cargue la imagen para conocer su tamaño real
+// Esperamos a que cargue la imagen para conocer su tamaño real.
+// En pantallas chicas (celulares) usamos el plano LIGERO, sin las sombras con desenfoque,
+// que son muy pesadas. Si ese archivo no existe, se vuelve al plano original.
+const PLANO_COMPLETO = imagen.getAttribute("src");
+if (window.matchMedia("(max-width: 800px)").matches) {
+  imagen.addEventListener("error", function volver() {
+    imagen.removeEventListener("error", volver);
+    imagen.src = PLANO_COMPLETO;
+  });
+  imagen.src = "Img/Mapa Conamap-ligero.svg";
+}
 if (imagen.complete && imagen.naturalWidth) iniciar();
 else imagen.addEventListener("load", iniciar);
 
