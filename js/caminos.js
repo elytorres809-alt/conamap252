@@ -50,6 +50,62 @@ const CAMINOS = [
 ];
 
 /* ------------------------------------------------------------
+   PLAZA CÍVICA: se puede caminar por toda su superficie
+   La plaza es un rectángulo girado (el mismo del SVG). Aquí lo llenamos
+   con una malla de puntos y unimos cada punto con sus vecinos (arriba, abajo,
+   a los lados y en diagonal). Así la ruta más corta puede cruzarla en línea
+   casi recta, en lugar de seguir un solo camino fijo.
+   Para una malla más fina baja PASO (más puntos = ruta más exacta).
+   ------------------------------------------------------------ */
+(function () {
+  const ESQUINA = { x: 384, y: 938.4 };   // esquina oeste de la plaza
+  const ANCHO = 181, ALTO = 235.3;        // medidas del rectángulo (sin girar)
+  const PASO = 30;                        // separación entre puntos de la malla
+  const MARGEN = 12;                      // los puntos no llegan hasta la orilla
+  const Y_MAX = 1050;                     // parte de la plaza que queda fuera del dibujo
+  const COS = 0.766, SEN = 0.6428;        // giro de 40° del rectángulo
+
+  // 1) Crear los puntos (u = a lo ancho, v = a lo largo, antes de girar)
+  const filas = [];
+  const malla = [];
+  for (let v = MARGEN; v <= ALTO - MARGEN; v += PASO) {
+    const fila = [];
+    for (let u = MARGEN; u <= ANCHO - MARGEN; u += PASO) {
+      const x = ESQUINA.x + COS * u + SEN * v;
+      const y = ESQUINA.y - SEN * u + COS * v;
+      if (y > Y_MAX) { fila.push(null); continue; }   // cae fuera del dibujo
+      NODOS.push([Math.round(x), Math.round(y)]);
+      fila.push(NODOS.length - 1);
+      malla.push(NODOS.length - 1);
+    }
+    filas.push(fila);
+  }
+
+  // 2) Unir cada punto con su vecino de al lado, de abajo y las dos diagonales
+  for (let i = 0; i < filas.length; i++) {
+    for (let j = 0; j < filas[i].length; j++) {
+      const a = filas[i][j];
+      if (a === null) continue;
+      [[0, 1], [1, 0], [1, 1], [1, -1]].forEach(function (d) {
+        const otra = filas[i + d[0]];
+        const b = otra ? otra[j + d[1]] : undefined;
+        if (b !== undefined && b !== null) CAMINOS.push([a, b]);
+      });
+    }
+  }
+
+  // 3) Conectar la malla con los caminos de afuera: el final del camino de piedras (44),
+  //    el centro de la plaza (45) y los dos caminos que llegan a sus esquinas (6 y 27)
+  [6, 27, 44, 45].forEach(function (id) {
+    malla.forEach(function (m) {
+      const dx = NODOS[m][0] - NODOS[id][0];
+      const dy = NODOS[m][1] - NODOS[id][1];
+      if (Math.hypot(dx, dy) <= 50) CAMINOS.push([id, m]);
+    });
+  });
+})();
+
+/* ------------------------------------------------------------
    ACCESOS (opcional)
    Las zonas grandes (campo, cancha, plaza...) están lejos de los
    caminos. Aquí indicamos por qué punto se "entra" a cada una.
